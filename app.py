@@ -25,7 +25,7 @@ Analyzer.analyze(MSFTQuotes)
 
 config3 = {
     "nQuotes": 500,
-    "recoverAfter": 10,
+    "recoverAfter": 2,
 }
 Analyzer.simulate(config3, MSFTQuotes)
 
