@@ -1,6 +1,7 @@
 from datetime import datetime
 import csv
 import matplotlib.pyplot as plt
+import matplotlib.dates as md
 
 class Quote:
     def __init__(self, timestamp=None, open=None, close=None, dividend=None, splitCoefficient=None):
@@ -58,6 +59,15 @@ class Quote:
         return quotes
 
     @staticmethod
+    def findDividendDates(quotes):
+        dividendsDates = []
+        for q in quotes:
+            if float(q.dividend) > 0.0:
+                dividendsDates.append(q.timestamp)
+        return dividendsDates
+
+
+    @staticmethod
     def plotQuotes(config, quotes, show=True, figureNumber=1):
         # print("Config: " + str(config))
         times = list(map(lambda q: q.timestamp, quotes))
@@ -68,24 +78,23 @@ class Quote:
 
         if config['plotOpen']:
             plt.plot(times, opens, 'g-', label='Open')
+            plt.legend(loc='best')
 
         if config['plotClose']:
-            plt.plot(times, closes, 'b-', label='Close')       
+            plt.plot(times, closes, 'b-', label='Close')
+            plt.legend(loc='best')     
 
 
         if config['dividendMarker']:
-            #Search dates with dividends
-            dividendsDates = []
-            for q in quotes:
-                if float(q.dividend) > 0.0:
-                    dividendsDates.append(q.timestamp)
+            dividendsDates = Quote.findDividendDates(quotes) #Search dates with dividends
             for dD in dividendsDates:
                 plt.axvline(x=dD, c='r')
             
-            print("Dividend dates: " + str(dividendsDates))
+            #print("Dividend dates: " + str(dividendsDates))
         
         if show:
             plt.show()
+
 
     @staticmethod
     def plotMultipleQuotes(config, *quotesSet):
@@ -93,5 +102,44 @@ class Quote:
         for q in quotesSet:
             Quote.plotQuotes(config, q, False, i) #False = doesn't call show
             i = i + 1
+        plt.show()
+
+
+
+    # config = {
+    #     "daysBefore": 2,
+    #     "daysAfter": 2,
+    #     "dividendsNumber": 4
+    # }
+    @staticmethod
+    def plotDividendDates(config, quotes):
+        dividendsDates = Quote.findDividendDates(quotes) #Search dates with dividends
+        latestDividendsDates = dividendsDates[-config['dividendsNumber']:]
+        print(latestDividendsDates)
+
+        subPlotNumber = 421
+        for d in latestDividendsDates: # for each of the latest quote dates
+            index = [ q.timestamp for q in quotes ].index(d) # finding the index
+            subQuotes = quotes[ index-config['daysBefore'] : index+config['daysAfter']+1 ] # slicing the array
+
+            print("Date of interest: " + str(d))
+            #print([q.timestamp for q in subQuotes])
+                        
+            # ---------- PLOT ----------
+            plt.figure(1)
+
+            ax = plt.subplot(subPlotNumber)
+            xfmt = md.DateFormatter('%Y-%m-%d')
+            ax.xaxis.set_major_formatter(xfmt)
+           
+
+            dates =[q.timestamp for q in subQuotes]
+            plt.plot( dates , [q.open for q in subQuotes], 'g-', label='Open' )
+            plt.plot( dates , [q.close for q in subQuotes], 'b-', label='Close' )
+            plt.axvline(x=quotes[index].timestamp, c='r', label='Dividend date')
+            plt.legend(loc='best')
+            subPlotNumber = subPlotNumber + 1
+            plt.xticks( dates, rotation=25 )
+
         plt.show()
         
