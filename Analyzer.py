@@ -1,4 +1,5 @@
 from Quote import Quote
+import math
 
 class Analyzer:
     def __init__(self, quotes: [Quote]):
@@ -83,17 +84,6 @@ class Analyzer:
             i += 1
 
 
-    # ---------- PROCESS ----------
-    # 1) Buy on Ex-diffDate
-    # 2) It recovers in X days?
-    #
-    # 2.yes) Look at the slope
-    # 2.yes.>30%) Hold and go back to (2.yes)
-    # 2.yes.<=30%) Sell and take profit
-    #
-    # 2.no) Look at the slope
-    # 2.no.>0%) Hold and go back to (2.no)
-    # 2.no.<=0%) Sell & take loss
 
     # config = {
     #     "recoverAfter": 10,
@@ -104,30 +94,58 @@ class Analyzer:
         indx = 0
         verticalMarkers = []
         newQuotes = quotes[-config['nQuotes']:]
+        totalProfit = 1
+        partialProfit = 1
         while indx < len(newQuotes):
             if newQuotes[indx].dividend > 0: # Dividend date => buy (at closing price)
-                
-                buyQuote = newQuotes[indx] # buy (at closing price)
-                print("Buying at " + str(buyQuote.close))
+                partialProfit = 1 #Initialization
 
-                indx2 = indx
-                recovered = None
-                while indx2 < len(newQuotes): # Let's find when it recovers
-                    if newQuotes[indx2].close > buyQuote.close: #Recovered
-                        recovered = newQuotes[indx2]
+                buyQuote = newQuotes[indx] # buy (at closing price)
+                print("Buying at " + buyQuote.printRealQuote())
+                verticalMarkers.append({"date": buyQuote.timestamp, "color": "y", "label":"Buy"})
+                
+                indx2 = indx+1
+                while indx2 < len(newQuotes):
+                    priceChange = newQuotes[indx2].realClose - newQuotes[indx2-1].realClose
+                    changePercentage = (priceChange/newQuotes[indx2].realClose) * 100
+
+                    print("Price change %.2f -> %.2f%%" % (priceChange, changePercentage))
+
+                    if newQuotes[indx2].close > buyQuote.close: #Recovered => sell
+                        verticalMarkers.append({"date": newQuotes[indx2].timestamp, "color": "c", "label":"Sell"})
+                        print("Selling at " + newQuotes[indx2].printRealQuote())
+                        break
+
+                    if indx2-indx > config['recoverAfter']: # Didn't recover
+                        verticalMarkers.append({"date": newQuotes[indx2].timestamp, "color": "r", "label":"Late recovery"})
+                        print('LATE RECOVERY -> ' + str(buyQuote))
                         break
                     
-                    if indx2 - indx > config['recoverAfter']: #Didn't recover in time
-                        break
-
                     indx2 = indx2 + 1
 
-                verticalMarkers.append({"date": buyQuote.timestamp, "color": "y", "label":"Buy"})
-                if recovered is None: # Didn't recover
-                    print("Didn't recover")
-                else:
-                    print("Recovered -> " + str(buyQuote) + " " + str(recovered))
-                    verticalMarkers.append({"date": recovered.timestamp, "color": "c", "label":"Sell"})
+                print("Verify at " + newQuotes[indx2].printRealQuote())
+                partialProfit = ((newQuotes[indx2].realClose - buyQuote.realClose)/buyQuote.realClose)*100
+                totalProfit = totalProfit + partialProfit
+                print("Partial profit %.2f%%\tTotal profit: %.2f%%\n" % (partialProfit, totalProfit))
+
+                # indx2 = indx
+                # recovered = None
+                # while indx2 < len(newQuotes): # Let's find when it recovers
+                #     if newQuotes[indx2].close > buyQuote.close: #Recovered
+                #         recovered = newQuotes[indx2]
+                #         break
+                    
+                #     if indx2 - indx > config['recoverAfter']: #Didn't recover in time
+                #         break
+
+                #     indx2 = indx2 + 1
+
+                # verticalMarkers.append({"date": buyQuote.timestamp, "color": "y", "label":"Buy"})
+                # if recovered is None: # Didn't recover
+                #     print("Didn't recover")
+                # else:
+                #     print("Recovered -> " + str(buyQuote) + " " + str(recovered))
+                #     verticalMarkers.append({"date": recovered.timestamp, "color": "c", "label":"Sell"})
                         
                     
 
@@ -135,7 +153,7 @@ class Analyzer:
     
 
         config = {
-        "dividendMarker": True,
+        "dividendMarker": False,
         "plotOpen": True,
         "plotClose": True,
         "verticalMarkers": verticalMarkers

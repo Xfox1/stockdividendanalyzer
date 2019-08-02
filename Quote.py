@@ -10,9 +10,14 @@ class Quote:
         self.close = float(close)
         self.dividend = float(dividend)
         self.splitCoefficient = float(splitCoefficient)
+        self.realOpen = self.open
+        self.realClose = self.close
     
     def __str__(self):
         return "%s\t%s\t%s" % (self.timestamp.strftime("%Y-%m-%d"), self.open, self.close)
+
+    def printRealQuote(self):
+        return "%s\t%s\t%s" % (self.timestamp.strftime("%Y-%m-%d"), self.realOpen, self.realClose)
 
     @staticmethod
     def parseCSV(filePath):
@@ -89,8 +94,9 @@ class Quote:
             dividendsDates = Quote.findDividendDates(quotes) #Search dates with dividends
             for dD in dividendsDates:
                 plt.axvline(x=dD, c='r', label='Dividend date')
+                plt.legend(loc='best') 
 
-        if config['verticalMarkers']:
+        if 'verticalMarkers' in config:
             for vm in config['verticalMarkers']:
                 plt.axvline(x=vm['date'], c=vm['color'], label=vm['label'])
             

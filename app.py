@@ -8,8 +8,6 @@ config = {
     "dividendMarker": True,
     "plotOpen": True,
     "plotClose": True
-}
-
 #Quote.plotQuotes(config, MSFTQuotes)
 #Quote.plotMultipleQuotes(config, MSFTQuotes, VZQuotes)
 
@@ -19,13 +17,13 @@ config2 = {
     "daysAfter": 10,
     "dividendsNumber": 8
 }
-
 #Quote.plotDividendDates(config2, MSFTQuotes)
+
 Analyzer.analyze(MSFTQuotes)
 
 config3 = {
     "nQuotes": 500,
-    "recoverAfter": 2,
+    "recoverAfter": 10,
 }
 Analyzer.simulate(config3, MSFTQuotes)
 
