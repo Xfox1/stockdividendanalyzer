@@ -88,7 +88,11 @@ class Quote:
         if config['dividendMarker']:
             dividendsDates = Quote.findDividendDates(quotes) #Search dates with dividends
             for dD in dividendsDates:
-                plt.axvline(x=dD, c='r')
+                plt.axvline(x=dD, c='r', label='Dividend date')
+
+        if config['verticalMarkers']:
+            for vm in config['verticalMarkers']:
+                plt.axvline(x=vm['date'], c=vm['color'], label=vm['label'])
             
             #print("Dividend dates: " + str(dividendsDates))
         
@@ -139,7 +143,7 @@ class Quote:
             plt.axvline(x=quotes[index].timestamp, c='r', label='Dividend date')
             plt.legend(loc='best')
             subPlotNumber = subPlotNumber + 1
-            plt.xticks( dates, rotation=25 )
+            plt.xticks( dates, rotation=35 )
 
         plt.show()
         
