@@ -123,7 +123,6 @@ class Analyzer:
                     
                     indx2 = indx2 + 1
 
-                print("Verify at " + newQuotes[indx2].printRealQuote())
                 partialProfit = ((newQuotes[indx2].realClose - buyQuote.realClose)/buyQuote.realClose)*100
                 totalProfit = totalProfit + partialProfit
                 print("Partial profit %.2f%%\tTotal profit: %.2f%%\n" % (partialProfit, totalProfit))
